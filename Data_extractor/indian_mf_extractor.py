@@ -63,10 +63,15 @@ HEADERS = {
 try:
     from tabulate import tabulate as _tabulate
     def _print_table(df, max_rows=15):
-        print(_tabulate(df.head(max_rows), headers="keys", tablefmt="rounded_outline", showindex=False))
+        table = _tabulate(df.head(max_rows), headers="keys", tablefmt="grid", showindex=False)
+        try:
+            print(table)
+        except UnicodeEncodeError:
+            print(table.encode("ascii", errors="replace").decode("ascii"))
 except ImportError:
     def _print_table(df, max_rows=15):
         print(df.head(max_rows).to_string(index=False))
+
 
 
 # ---------------------------------------------------------------------------

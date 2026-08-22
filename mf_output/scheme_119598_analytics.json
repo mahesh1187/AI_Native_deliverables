@@ -1,0 +1,62 @@
+{
+  "latest_nav": 104.9232,
+  "latest_date": "2026-08-21",
+  "all_time_high": 108.2085,
+  "all_time_low": 14.5277,
+  "returns": {
+    "1D": {
+      "absolute_%": 0.02,
+      "cagr_%": null,
+      "nav_then": 104.9023,
+      "nav_now": 104.9232
+    },
+    "1W": {
+      "absolute_%": -0.41,
+      "cagr_%": null,
+      "nav_then": 105.3576,
+      "nav_now": 104.9232
+    },
+    "1M": {
+      "absolute_%": 1.22,
+      "cagr_%": null,
+      "nav_then": 103.6592,
+      "nav_now": 104.9232
+    },
+    "3M": {
+      "absolute_%": 3.19,
+      "cagr_%": null,
+      "nav_then": 101.6833,
+      "nav_now": 104.9232
+    },
+    "6M": {
+      "absolute_%": -1.14,
+      "cagr_%": null,
+      "nav_then": 106.1366,
+      "nav_now": 104.9232
+    },
+    "1Y": {
+      "absolute_%": 1.83,
+      "cagr_%": 1.83,
+      "nav_then": 103.0328,
+      "nav_now": 104.9232
+    },
+    "3Y": {
+      "absolute_%": 36.43,
+      "cagr_%": 10.91,
+      "nav_then": 76.9051,
+      "nav_now": 104.9232
+    },
+    "5Y": {
+      "absolute_%": 70.72,
+      "cagr_%": 11.29,
+      "nav_then": 61.4601,
+      "nav_now": 104.9232
+    },
+    "10Y": {
+      "absolute_%": 221.92,
+      "cagr_%": 12.4,
+      "nav_then": 32.5925,
+      "nav_now": 104.9232
+    }
+  }
+}
