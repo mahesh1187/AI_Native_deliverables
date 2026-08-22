@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Agent Design Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0a0b0f;--surface:#12141a;--surface2:#1a1d27;--surface3:#22263a;--border:rgba(255,255,255,0.07);--accent:#6c63ff;--accent2:#00d4ff;--accent3:#ff6b9d;--green:#00e5a0;--yellow:#ffd060;--red:#ff5c5c;--text:#e8eaf6;--text2:#8b92b8;--text3:#4a5180;--radius:14px;--radius-sm:8px;--glow:0 0 40px rgba(108,99,255,0.15);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(108,99,255,0.12) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 110%,rgba(0,212,255,0.08) 0%,transparent 60%);pointer-events:none;z-index:0;}
+header{position:sticky;top:0;z-index:100;background:rgba(10,11,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 4px 15px rgba(108,99,255,0.4);}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-0.3px;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,0.08);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b63ff);color:#fff;border-color:transparent;box-shadow:0 4px 15px rgba(108,99,255,0.35);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,0.5);}
+.btn-danger{background:rgba(255,92,92,0.1);border-color:rgba(255,92,92,0.3);color:var(--red);}
+.btn-danger:hover{background:rgba(255,92,92,0.2);}
+.hero{position:relative;z-index:1;padding:56px 32px 40px;max-width:1100px;margin:0 auto;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.25);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:20px;}
+h1{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 30%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{color:var(--text2);font-size:16px;max-width:560px;margin-bottom:32px;}
+.overall-progress{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;box-shadow:var(--glow);}
+.op-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.op-label{font-size:14px;font-weight:600;color:var(--text2);}
+.op-count{font-size:28px;font-weight:800;letter-spacing:-1px;}
+.op-count span{font-size:16px;font-weight:400;color:var(--text2);}
+.progress-track{height:8px;background:var(--surface3);border-radius:100px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 12px rgba(108,99,255,0.6);}
+.phase-bars{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:16px;}
+.phase-mini{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;}
+.pm-label{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.pm-track{height:4px;background:var(--surface3);border-radius:100px;overflow:hidden;}
+.pm-fill{height:100%;border-radius:100px;transition:width .5s;}
+.pm-count{font-size:11px;color:var(--text3);margin-top:5px;}
+.search-wrap{position:relative;margin-bottom:28px;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none;}
+#searchInput{width:100%;padding:12px 14px 12px 42px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+#searchInput:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,0.12);}
+#searchInput::placeholder{color:var(--text3);}
+.main{max-width:1100px;margin:0 auto;padding:0 32px 80px;position:relative;z-index:1;}
+.tab-bar{display:flex;gap:4px;margin-bottom:28px;flex-wrap:wrap;}
+.tab{padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;border:1px solid transparent;background:transparent;}
+.tab:hover{color:var(--text);background:var(--surface2);}
+.tab.active{background:rgba(108,99,255,0.15);border-color:rgba(108,99,255,0.3);color:var(--accent);}
+.phase-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;transition:border-color .2s;animation:fadeIn .3s ease both;}
+.phase-card:hover{border-color:rgba(255,255,255,0.12);}
+.phase-header{display:flex;align-items:center;gap:14px;padding:20px 24px;cursor:pointer;user-select:none;}
+.phase-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.phase-meta{flex:1;}
+.phase-title{font-size:15px;font-weight:700;letter-spacing:-0.3px;}
+.phase-subtitle{font-size:12px;color:var(--text2);margin-top:2px;}
+.phase-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;background:var(--surface2);color:var(--text2);white-space:nowrap;}
+.phase-chevron{color:var(--text3);transition:transform .3s;font-size:14px;}
+.phase-card.open .phase-chevron{transform:rotate(180deg);}
+.phase-progress{height:3px;background:var(--surface3);}
+.phase-progress-fill{height:100%;transition:width .4s;}
+.phase-body{padding:4px 24px 20px;display:none;}
+.phase-card.open .phase-body{display:block;}
+.check-group{margin-bottom:4px;}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;animation:fadeIn .2s ease both;}
+.check-item:hover{background:var(--surface2);}
+.check-item.checked{opacity:0.5;}
+.check-item.checked .check-label{text-decoration:line-through;}
+.check-item.hidden{display:none;}
+.custom-checkbox{width:18px;height:18px;border-radius:5px;flex-shrink:0;margin-top:2px;border:2px solid var(--surface3);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.check-item:hover .custom-checkbox{border-color:var(--accent);}
+.check-item.checked .custom-checkbox{background:var(--green);border-color:var(--green);}
+.checkmark{display:none;color:#000;font-size:11px;font-weight:800;}
+.check-item.checked .checkmark{display:block;}
+.check-label{font-size:14px;color:var(--text);flex:1;}
+.sub-items{padding-left:30px;}
+.sub-item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;font-size:13px;color:var(--text2);}
+.sub-item:hover{background:var(--surface2);color:var(--text);}
+.sub-item.checked{opacity:0.45;text-decoration:line-through;}
+.sub-item.hidden{display:none;}
+.sub-checkbox{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:2px solid var(--surface3);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.sub-item.checked .sub-checkbox{background:var(--green);border-color:var(--green);}
+.sub-checkmark{display:none;color:#000;font-size:9px;font-weight:900;}
+.sub-item.checked .sub-checkmark{display:block;}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.resource-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.rs-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.rs-icon{font-size:20px;}
+.rs-title{font-size:14px;font-weight:700;}
+.rs-body{padding:8px 0;}
+.resource-link{display:flex;align-items:center;gap:10px;padding:10px 20px;text-decoration:none;color:var(--text2);font-size:13px;transition:all .15s;border-left:3px solid transparent;}
+.resource-link:hover{color:var(--text);background:var(--surface2);border-left-color:var(--accent);}
+.resource-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(108,99,255,0.15);color:var(--accent);white-space:nowrap;}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 22px;font-size:14px;font-weight:600;color:var(--green);box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:9999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column;gap:4px;}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-1px;}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:100px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.completed-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div class="logo-text">AI Agent Design Checklist</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost" onclick="expandAll()">⊞ Expand All</button>
+    <button class="btn btn-ghost" onclick="collapseAll()">⊟ Collapse All</button>
+    <button class="btn btn-danger" onclick="resetAll()">↺ Reset</button>
+    <button class="btn btn-primary" onclick="exportProgress()">⬇ Export</button>
+  </div>
+</header>
+<div class="hero">
+  <div class="hero-tag">✦ AI Engineering Toolkit</div>
+  <h1>AI Agent Design<br>Checklist</h1>
+  <p class="hero-sub">A comprehensive, interactive guide to design, build, evaluate, and deploy AI agents for any problem statement.</p>
+  <div class="overall-progress">
+    <div class="op-row">
+      <span class="op-label">Overall Progress</span>
+      <span class="op-count" id="overallCount">0 <span>/ 0 tasks</span></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="overallFill" style="width:0%"></div></div>
+    <div class="phase-bars" id="phaseBars"></div>
+  </div>
+</div>
+<div class="main">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('checklist',this)">📋 Checklist</button>
+    <button class="tab" onclick="switchTab('resources',this)">📚 Resources</button>
+    <button class="tab" onclick="switchTab('community',this)">💬 Community</button>
+    <button class="tab" onclick="switchTab('stats',this)">📊 Progress</button>
+  </div>
+  <div id="tab-checklist" class="tab-content active">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search tasks..." oninput="filterTasks(this.value)"/>
+    </div>
+    <div id="phases"></div>
+  </div>
+  <div id="tab-resources" class="tab-content">
+    <div class="resources-grid" id="resourcesGrid"></div>
+  </div>
+  <div id="tab-community" class="tab-content">
+    <div class="resources-grid" id="communityGrid"></div>
+  </div>
+  <div id="tab-stats" class="tab-content">
+    <div class="stats-bar" id="statsBar"></div>
+    <div id="phaseStatsGrid" class="resources-grid"></div>
+  </div>
+</div>
+<div id="toast">✓ <span id="toastMsg">Task completed!</span></div>
+<script>
+const phases=[{id:"p1",title:"Problem Definition & Scoping",emoji:"🎯",color:"#6c63ff",subtitle:"Define what the agent must solve",items:[{id:"p1_1",label:"Define the Problem Statement clearly",subs:["What is the core task?","Who are the end users?","What does success look like?"]},{id:"p1_2",label:"Identify Agent Type",subs:["Reactive Agent (rule-based)","Goal-based Agent","Utility-based Agent","Learning Agent","Multi-Agent System (MAS)"]},{id:"p1_3",label:"Define scope boundaries",subs:["What is IN scope?","What is OUT of scope?","Non-negotiables?"]},{id:"p1_4",label:"Identify constraints",subs:["Latency requirements","Cost / budget limits","Privacy / compliance (GDPR, HIPAA)","Offline vs. online capability"]}]},{id:"p2",title:"Agent Architecture Design",emoji:"🧠",color:"#00d4ff",subtitle:"Choose frameworks, LLM, memory, tools",items:[{id:"p2_1",label:"Choose Agent Framework / Orchestration",subs:["LangChain / LangGraph","AutoGen (Microsoft)","CrewAI","LlamaIndex Workflows","Custom from scratch"]},{id:"p2_2",label:"Select the LLM backbone",subs:["OpenAI GPT-4 / GPT-4o","Anthropic Claude","Google Gemini","Meta LLaMA (open-source)","Mistral / Mixtral","Local model via Ollama"]},{id:"p2_3",label:"Define Agent Components",subs:["Perception Module (input parsing)","Memory Module (short/long-term)","Planning Module (task decomposition)","Action Module (tool calling)","Feedback / Reflection Module"]},{id:"p2_4",label:"Design Memory Strategy",subs:["In-context (conversation history)","Vector DB (Pinecone, ChromaDB, FAISS)","External KB / Graph DB (Neo4j)","Episodic memory"]},{id:"p2_5",label:"Identify Tools & Integrations",subs:["Web search (Tavily, SerpAPI, Brave)","Code execution (Python REPL, E2B)","File I/O","Database queries (SQL, NoSQL)","REST / GraphQL APIs","Browser / Playwright automation","Email / Calendar / Slack","Custom domain tools (MCP servers)"]}]},{id:"p3",title:"Data & Knowledge",emoji:"🗂️",color:"#ff6b9d",subtitle:"Data sources, RAG pipeline, prompts",items:[{id:"p3_1",label:"Identify data sources",subs:["Structured (CSV, DB)","Unstructured (PDFs, docs, web)","Real-time (APIs, streams)"]},{id:"p3_2",label:"Set up RAG pipeline",subs:["Document ingestion & chunking strategy","Embedding model selection","Vector store setup","Retrieval strategy (semantic, hybrid, re-ranking)"]},{id:"p3_3",label:"Define prompt templates",subs:["System prompt","Few-shot examples","Chain-of-thought instructions","Output format constraints (JSON, markdown)"]}]},{id:"p4",title:"Agentic Workflow Design",emoji:"🔁",color:"#ffd060",subtitle:"Loops, reasoning strategies, HITL",items:[{id:"p4_1",label:"Define Task Decomposition strategy",subs:["ReAct (Reason + Act)","Plan-and-Execute","Tree of Thoughts (ToT)","MCTS (Monte Carlo Tree Search)"]},{id:"p4_2",label:"Design the agent loop",subs:["Input→Perception→Plan→Execute→Observe→Reflect→Output","Define stop conditions / exit criteria"]},{id:"p4_3",label:"Handle Multi-step reasoning",subs:["Chain of Thought (CoT)","Self-consistency","Self-reflection / self-critique"]},{id:"p4_4",label:"Design for Human-in-the-Loop (HITL)",subs:["Where should agent pause for human approval?","How does human override or correct the agent?"]}]},{id:"p5",title:"Development & Implementation",emoji:"⚙️",color:"#00e5a0",subtitle:"Environment, skeleton, testing",items:[{id:"p5_1",label:"Set up development environment",subs:["Python / Node.js environment",".env for API keys",".gitignore configured","Dependency management (requirements.txt / pyproject.toml)"]},{id:"p5_2",label:"Implement agent skeleton",subs:["Core agent class / module","Tool registry","Memory integration","Logging & tracing (LangSmith, Phoenix, Helicone)"]},{id:"p5_3",label:"Write unit & integration tests",subs:["Tool function tests","Agent response tests (golden dataset)","Edge case handling"]}]},{id:"p6",title:"Evaluation & Testing",emoji:"🧪",color:"#ff9f43",subtitle:"Metrics, evals, red-teaming",items:[{id:"p6_1",label:"Define evaluation metrics",subs:["Task completion rate","Accuracy / Faithfulness","Hallucination rate","Latency (P50, P95)","Cost per task"]},{id:"p6_2",label:"Run evals using frameworks",subs:["RAGAS (RAG evaluation)","DeepEval","LangSmith Evals","OpenAI Evals","Custom eval scripts"]},{id:"p6_3",label:"Red-team the agent",subs:["Prompt injection attacks","Jailbreak attempts","Tool misuse scenarios","Adversarial inputs"]},{id:"p6_4",label:"Benchmark against baseline",subs:["Human baseline","Rule-based system baseline","Prior agent version"]}]},{id:"p7",title:"Deployment & Observability",emoji:"🚀",color:"#a29bfe",subtitle:"Hosting, monitoring, security",items:[{id:"p7_1",label:"Choose deployment platform",subs:["FastAPI / Flask API wrapper","Streamlit / Gradio UI","LangServe","AWS Lambda / Azure Functions","Docker + Kubernetes","HuggingFace Spaces"]},{id:"p7_2",label:"Set up observability",subs:["Trace every agent step (LangSmith, Phoenix)","Log inputs/outputs","Set up alerts for failures","Cost monitoring dashboard"]},{id:"p7_3",label:"Security & compliance review",subs:["Data encryption at rest and in transit","PII redaction","Rate limiting & auth","Audit logs"]}]},{id:"p8",title:"Iteration & Improvement",emoji:"🔄",color:"#fd79a8",subtitle:"Feedback, fine-tuning, monitoring",items:[{id:"p8_1",label:"Collect user feedback",subs:["Thumbs up/down","Correction captures","Session recordings"]},{id:"p8_2",label:"Fine-tune or prompt-tune",subs:["Identify failure modes","Build training dataset from corrections","LoRA / QLoRA fine-tuning"]},{id:"p8_3",label:"Monitor in production",subs:["Drift detection","Periodic re-evaluation","Cost optimization"]}]}];
+
+const resources=[{title:"Foundational Papers",icon:"📄",items:[{label:"ReAct: Reasoning + Acting",url:"https://arxiv.org/abs/2210.03629",badge:"Paper"},{label:"Toolformer",url:"https://arxiv.org/abs/2302.04761",badge:"Paper"},{label:"Chain-of-Thought Prompting",url:"https://arxiv.org/abs/2201.11903",badge:"Paper"},{label:"Tree of Thoughts",url:"https://arxiv.org/abs/2305.10601",badge:"Paper"},{label:"LLM Autonomous Agents Survey",url:"https://arxiv.org/abs/2308.11432",badge:"Survey"},{label:"MRKL Systems",url:"https://arxiv.org/abs/2205.00445",badge:"Paper"}]},{title:"Frameworks & Docs",icon:"📘",items:[{label:"LangChain Docs",url:"https://docs.langchain.com",badge:"Docs"},{label:"LangGraph Docs",url:"https://langchain-ai.github.io/langgraph",badge:"Docs"},{label:"AutoGen (Microsoft)",url:"https://microsoft.github.io/autogen",badge:"Docs"},{label:"CrewAI Docs",url:"https://docs.crewai.com",badge:"Docs"},{label:"LlamaIndex Docs",url:"https://docs.llamaindex.ai",badge:"Docs"},{label:"Semantic Kernel",url:"https://learn.microsoft.com/en-us/semantic-kernel",badge:"Docs"},{label:"OpenAI Assistants API",url:"https://platform.openai.com/docs/assistants",badge:"Docs"},{label:"Ollama (local LLMs)",url:"https://ollama.com/docs",badge:"Docs"}]},{title:"Learning Platforms",icon:"🎓",items:[{label:"DeepLearning.AI Short Courses",url:"https://learn.deeplearning.ai",badge:"Course"},{label:"Hugging Face Learn",url:"https://huggingface.co/learn",badge:"Course"},{label:"Fast.ai",url:"https://course.fast.ai",badge:"Course"},{label:"AI Jason YouTube",url:"https://www.youtube.com/@AIJasonZ",badge:"YouTube"},{label:"Sam Witteveen YouTube",url:"https://www.youtube.com/@samwitteveenai",badge:"YouTube"},{label:"Matt Williams (Ollama)",url:"https://www.youtube.com/@technovangelist",badge:"YouTube"}]},{title:"GitHub Repos to Watch",icon:"🐙",items:[{label:"LangChain",url:"https://github.com/langchain-ai/langchain",badge:"GitHub"},{label:"AutoGen",url:"https://github.com/microsoft/autogen",badge:"GitHub"},{label:"CrewAI",url:"https://github.com/crewAIInc/crewAI",badge:"GitHub"},{label:"LlamaIndex",url:"https://github.com/run-llama/llama_index",badge:"GitHub"},{label:"Awesome AI Agents",url:"https://github.com/e2b-dev/awesome-ai-agents",badge:"GitHub"}]}];
+
+const community=[{title:"Discord Servers",icon:"🗣️",items:[{label:"LangChain Discord",url:"https://discord.gg/langchain",badge:"Discord"},{label:"AutoGen Discord",url:"https://discord.gg/autogen",badge:"Discord"},{label:"CrewAI Discord",url:"https://discord.gg/crewai",badge:"Discord"},{label:"Hugging Face Discord",url:"https://discord.gg/huggingface",badge:"Discord"},{label:"Ollama Discord",url:"https://discord.gg/ollama",badge:"Discord"},{label:"AI Engineer Foundation",url:"https://discord.gg/ai-engineer",badge:"Discord"},{label:"OpenAI Developers",url:"https://discord.gg/openai",badge:"Discord"}]},{title:"Reddit Communities",icon:"🟠",items:[{label:"r/LangChain",url:"https://reddit.com/r/LangChain",badge:"Reddit"},{label:"r/LocalLLaMA",url:"https://reddit.com/r/LocalLLaMA",badge:"Reddit"},{label:"r/artificial",url:"https://reddit.com/r/artificial",badge:"Reddit"},{label:"r/MachineLearning",url:"https://reddit.com/r/MachineLearning",badge:"Reddit"},{label:"r/AIAgents",url:"https://reddit.com/r/AIAgents",badge:"Reddit"}]},{title:"Twitter / X to Follow",icon:"🐦",items:[{label:"@hwchase17 — LangChain creator",url:"https://twitter.com/hwchase17",badge:"X"},{label:"@AnthropicAI — Claude / Agents",url:"https://twitter.com/AnthropicAI",badge:"X"},{label:"@karpathy — AI fundamentals",url:"https://twitter.com/karpathy",badge:"X"},{label:"@yoheinakajima — BabyAGI creator",url:"https://twitter.com/yoheinakajima",badge:"X"}]},{title:"Newsletters",icon:"📧",items:[{label:"The Batch (Andrew Ng)",url:"https://www.deeplearning.ai/the-batch",badge:"Newsletter"},{label:"AI Tidbits",url:"https://www.aitidbits.ai",badge:"Newsletter"},{label:"Last Week in AI",url:"https://lastweekin.ai",badge:"Newsletter"},{label:"TLDR AI",url:"https://tldr.tech/ai",badge:"Newsletter"}]}];
+
+let state=JSON.parse(localStorage.getItem("agentChecklist")||"{}");
+function save(){localStorage.setItem("agentChecklist",JSON.stringify(state));}
+
+function renderPhases(){
+  const container=document.getElementById("phases");
+  container.innerHTML="";
+  const phaseBars=document.getElementById("phaseBars");
+  phaseBars.innerHTML="";
+  phases.forEach((phase,pi)=>{
+    const card=document.createElement("div");
+    card.className="phase-card open";
+    card.id="card-"+phase.id;
+    const totalSubs=phase.items.reduce((a,i)=>a+(i.subs?i.subs.length:0),0);
+    const total=phase.items.length+totalSubs;
+    card.innerHTML=`<div class="phase-header" onclick="togglePhase('${phase.id}')"><div class="phase-icon" style="background:${phase.color}20;color:${phase.color}">${phase.emoji}</div><div class="phase-meta"><div class="phase-title">Phase ${pi+1}: ${phase.title}</div><div class="phase-subtitle">${phase.subtitle}</div></div><div class="phase-badge" id="badge-${phase.id}">0 / ${total}</div><div class="phase-chevron" id="chev-${phase.id}">▾</div></div><div class="phase-progress"><div class="phase-progress-fill" id="pp-${phase.id}" style="background:${phase.color};width:0%"></div></div><div class="phase-body" id="body-${phase.id}">${renderPhaseItems(phase)}</div>`;
+    container.appendChild(card);
+    const mini=document.createElement("div");
+    mini.className="phase-mini";
+    mini.innerHTML=`<div class="pm-label">${phase.emoji} Phase ${pi+1}</div><div class="pm-track"><div class="pm-fill" id="pmf-${phase.id}" style="background:${phase.color};width:0%"></div></div><div class="pm-count" id="pmc-${phase.id}">0 / ${total}</div>`;
+    phaseBars.appendChild(mini);
+  });
+  updateAll();
+}
+
+function renderPhaseItems(phase){
+  return phase.items.map(item=>`<div class="check-group"><div class="check-item ${state[item.id]?'checked':''}" id="ci-${item.id}" onclick="toggleItem('${item.id}')"><div class="custom-checkbox"><span class="checkmark">✓</span></div><div><div class="check-label"><strong>${item.label}</strong></div></div></div>${item.subs?`<div class="sub-items">${item.subs.map((sub,si)=>{const sid=item.id+"_s"+si;return`<div class="sub-item ${state[sid]?'checked':''}" id="ci-${sid}" onclick="toggleItem('${sid}')"><div class="sub-checkbox"><span class="sub-checkmark">✓</span></div><span>${sub}</span></div>`;}).join("")}</div>`:""}</div>`).join("");
+}
+
+function renderResources(data,containerId){
+  const container=document.getElementById(containerId);
+  container.innerHTML="";
+  data.forEach(section=>{
+    const div=document.createElement("div");
+    div.className="resource-section";
+    div.innerHTML=`<div class="rs-header"><span class="rs-icon">${section.icon}</span><span class="rs-title">${section.title}</span></div><div class="rs-body">${section.items.map(item=>`<a class="resource-link" href="${item.url}" target="_blank" rel="noopener"><span>↗</span><span style="flex:1">${item.label}</span><span class="resource-badge">${item.badge}</span></a>`).join("")}</div>`;
+    container.appendChild(div);
+  });
+}
+
+function toggleItem(id){
+  state[id]=!state[id];save();
+  const el=document.getElementById("ci-"+id);
+  if(el)el.classList.toggle("checked",state[id]);
+  updateAll();
+  if(state[id])showToast("Task marked complete! 🎉");
+}
+
+function togglePhase(id){document.getElementById("card-"+id).classList.toggle("open");}
+function expandAll(){document.querySelectorAll(".phase-card").forEach(c=>c.classList.add("open"));}
+function collapseAll(){document.querySelectorAll(".phase-card").forEach(c=>c.classList.remove("open"));}
+
+function resetAll(){
+  if(!confirm("Reset all progress? This cannot be undone."))return;
+  state={};save();
+  document.querySelectorAll(".check-item,.sub-item").forEach(el=>el.classList.remove("checked"));
+  updateAll();
+}
+
+function updateAll(){
+  let totalDone=0,totalAll=0;
+  phases.forEach(phase=>{
+    let done=0,all=0;
+    phase.items.forEach(item=>{
+      all++;if(state[item.id])done++;
+      if(item.subs)item.subs.forEach((_,si)=>{all++;if(state[item.id+"_s"+si])done++;});
+    });
+    totalDone+=done;totalAll+=all;
+    const pct=all?Math.round(done/all*100):0;
+    const pp=document.getElementById("pp-"+phase.id);
+    const badge=document.getElementById("badge-"+phase.id);
+    const pmf=document.getElementById("pmf-"+phase.id);
+    const pmc=document.getElementById("pmc-"+phase.id);
+    if(pp)pp.style.width=pct+"%";
+    if(badge)badge.textContent=done+" / "+all;
+    if(pmf)pmf.style.width=pct+"%";
+    if(pmc)pmc.textContent=done+" / "+all;
+  });
+  const overallPct=totalAll?Math.round(totalDone/totalAll*100):0;
+  document.getElementById("overallFill").style.width=overallPct+"%";
+  document.getElementById("overallCount").innerHTML=totalDone+' <span>/ '+totalAll+' tasks ('+overallPct+'%)</span>';
+  renderStats(totalDone,totalAll);
+}
+
+function renderStats(totalDone,totalAll){
+  document.getElementById("statsBar").innerHTML=`<div class="stat-card"><div class="stat-val" style="color:var(--green)">${totalDone}</div><div class="stat-lbl">Tasks Done</div></div><div class="stat-card"><div class="stat-val" style="color:var(--text2)">${totalAll-totalDone}</div><div class="stat-lbl">Remaining</div></div><div class="stat-card"><div class="stat-val" style="color:var(--accent)">${totalAll?Math.round(totalDone/totalAll*100):0}%</div><div class="stat-lbl">Completion</div></div><div class="stat-card"><div class="stat-val" style="color:var(--yellow)">${phases.length}</div><div class="stat-lbl">Phases</div></div>`;
+  const grid=document.getElementById("phaseStatsGrid");
+  grid.innerHTML="";
+  phases.forEach((phase,pi)=>{
+    let done=0,all=0;
+    phase.items.forEach(item=>{all++;if(state[item.id])done++;if(item.subs)item.subs.forEach((_,si)=>{all++;if(state[item.id+"_s"+si])done++;});});
+    const pct=all?Math.round(done/all*100):0;
+    const div=document.createElement("div");
+    div.className="resource-section";div.style.padding="20px";
+    div.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-size:22px">${phase.emoji}</span><div><div style="font-size:13px;font-weight:700">Phase ${pi+1}: ${phase.title}</div><div style="font-size:11px;color:var(--text2)">${done} / ${all} tasks</div></div><div style="margin-left:auto;font-size:20px;font-weight:800;color:${phase.color}">${pct}%</div></div><div class="pm-track"><div class="pm-fill" style="background:${phase.color};width:${pct}%"></div></div>${pct===100?'<div style="margin-top:10px"><span class="completed-badge">✓ Complete</span></div>':""}`;
+    grid.appendChild(div);
+  });
+}
+
+function filterTasks(query){
+  const q=query.toLowerCase();
+  document.querySelectorAll(".check-item,.sub-item").forEach(el=>{
+    const text=el.textContent.toLowerCase();
+    el.classList.toggle("hidden",q.length>0&&!text.includes(q));
+  });
+  if(q.length>0)expandAll();
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  btn.classList.add("active");
+}
+
+let toastTimer;
+function showToast(msg){
+  const toast=document.getElementById("toast");
+  document.getElementById("toastMsg").textContent=msg;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),2200);
+}
+
+function exportProgress(){
+  let txt="# AI Agent Design Checklist — Export\n\n";
+  let totalDone=0,totalAll=0;
+  phases.forEach((phase,pi)=>{
+    txt+=`## Phase ${pi+1}: ${phase.title}\n`;
+    phase.items.forEach(item=>{
+      totalAll++;const done=state[item.id];if(done)totalDone++;
+      txt+=(done?"[x]":"[ ]")+" "+item.label+"\n";
+      if(item.subs)item.subs.forEach((sub,si)=>{totalAll++;const sd=state[item.id+"_s"+si];if(sd)totalDone++;txt+="    "+(sd?"[x]":"[ ]")+" "+sub+"\n";});
+    });txt+="\n";
+  });
+  txt+=`---\nProgress: ${totalDone} / ${totalAll} (${Math.round(totalDone/totalAll*100)}%)\n`;
+  const blob=new Blob([txt],{type:"text/plain"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ai_agent_checklist_progress.md";a.click();
+}
+
+renderPhases();
+renderResources(resources,"resourcesGrid");
+renderResources(community,"communityGrid");
+renderStats(0,0);
+updateAll();
+</script>
+</body>
+</html>
