@@ -82,3 +82,7 @@ htmlcov/
 # AI / Agent tooling
 .gemini/
 .agents/scratch/
+
+# SCIM Token Monitor
+.scim_token_state.json
+scim_monitor.log
