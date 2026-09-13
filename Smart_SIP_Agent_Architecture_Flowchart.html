@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart SIP Agent — Architecture Flowchart</title>
+    <meta name="description" content="Complete architecture flowchart for the Smart SIP Agent: perception, reasoning, and action layers with dip scoring, guardrails, and execution pipeline.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary:      #0a0e1a;
+            --bg-card:         rgba(17, 24, 39, 0.75);
+            --surface:         rgba(30, 41, 59, 0.5);
+            --border:          rgba(99, 102, 241, 0.15);
+            --border-glow:     rgba(99, 102, 241, 0.35);
+
+            --text-primary:    #f1f5f9;
+            --text-secondary:  #94a3b8;
+            --text-muted:      #64748b;
+
+            --accent-indigo:   #818cf8;
+            --accent-violet:   #a78bfa;
+            --accent-cyan:     #22d3ee;
+            --accent-emerald:  #34d399;
+            --accent-amber:    #fbbf24;
+            --accent-rose:     #fb7185;
+            --accent-orange:   #fb923c;
+            --accent-blue:     #60a5fa;
+
+            --green:           #22c55e;
+            --green-bg:        rgba(34,197,94,0.08);
+            --green-border:    rgba(34,197,94,0.30);
+
+            --orange:          #f97316;
+            --orange-bg:       rgba(249,115,22,0.08);
+            --orange-border:   rgba(249,115,22,0.30);
+
+            --red:             #ef4444;
+            --red-bg:          rgba(239,68,68,0.08);
+            --red-border:      rgba(239,68,68,0.30);
+
+            --blue:            #3b82f6;
+            --blue-bg:         rgba(59,130,246,0.08);
+            --blue-border:     rgba(59,130,246,0.30);
+
+            --font-sans:  'Inter', system-ui, sans-serif;
+            --font-mono:  'JetBrains Mono', monospace;
+            --radius:     14px;
+            --radius-sm:  10px;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== BG FX ===== */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(140px); opacity: 0.14; z-index: 0; pointer-events: none;
+        }
+        .bg-orb--1 { width: 550px; height: 550px; top: -180px; left: -80px; background: #6366f1; }
+        .bg-orb--2 { width: 450px; height: 450px; bottom: -120px; right: -80px; background: #a855f7; }
+        .bg-orb--3 { width: 350px; height: 350px; top: 50%; left: 60%; background: #22d3ee; opacity: 0.06; }
+
+        .page { position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 0 24px 80px; }
+
+        /* ===== HERO ===== */
+        .hero { padding: 56px 0 36px; text-align: center; }
+        .hero__badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 16px; border-radius: 99px;
+            background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+            font-size: 0.72rem; font-weight: 700; color: var(--accent-indigo);
+            letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px;
+        }
+        .hero__badge .dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--accent-emerald);
+            animation: pulse-d 2s ease-in-out infinite;
+        }
+        @keyframes pulse-d { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+        .hero h1 {
+            font-size: clamp(1.8rem, 4.2vw, 3rem);
+            font-weight: 900; letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #f1f5f9 25%, #818cf8 65%, #22d3ee);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 12px;
+        }
+        .hero p { font-size: 1rem; color: var(--text-secondary); max-width: 640px; margin: 0 auto; }
+
+        /* ===== LAYER BANNER ===== */
+        .layer-banner {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 10px 0; margin: 36px 0 18px; position: relative;
+        }
+        .layer-banner::before, .layer-banner::after {
+            content: ''; flex: 1; height: 1px;
+        }
+        .layer-banner .label {
+            font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; padding: 4px 18px; border-radius: 99px;
+            white-space: nowrap;
+        }
+        .layer-banner--perception::before, .layer-banner--perception::after { background: rgba(34,211,238,0.2); }
+        .layer-banner--perception .label { background: rgba(34,211,238,0.08); color: var(--accent-cyan); border: 1px solid rgba(34,211,238,0.2); }
+
+        .layer-banner--reasoning::before, .layer-banner--reasoning::after { background: rgba(168,85,250,0.2); }
+        .layer-banner--reasoning .label { background: rgba(168,85,250,0.08); color: var(--accent-violet); border: 1px solid rgba(168,85,250,0.2); }
+
+        .layer-banner--action::before, .layer-banner--action::after { background: rgba(34,197,94,0.2); }
+        .layer-banner--action .label { background: rgba(34,197,94,0.08); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+
+        .layer-banner--feedback::before, .layer-banner--feedback::after { background: rgba(251,191,36,0.2); }
+        .layer-banner--feedback .label { background: rgba(251,191,36,0.08); color: var(--accent-amber); border: 1px solid rgba(251,191,36,0.2); }
+
+        /* ===== CANVAS ===== */
+        .canvas { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+        /* ===== ROW ===== */
+        .flow-row {
+            display: grid;
+            grid-template-columns: 1fr 440px 1fr;
+            align-items: center;
+            width: 100%; gap: 0;
+        }
+        .flow-row .left-annot  { text-align: right; padding-right: 24px; }
+        .flow-row .right-annot { text-align: left;  padding-left: 24px; }
+        .flow-row .center      { display: flex; flex-direction: column; align-items: center; }
+
+        /* ===== NODE ===== */
+        .node {
+            width: 100%; max-width: 440px;
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        .node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 36px rgba(99,102,241,0.1);
+            border-color: var(--border-glow);
+        }
+        .node__label {
+            font-size: 0.66rem; font-weight: 700; letter-spacing: 0.09em;
+            text-transform: uppercase; margin-bottom: 5px;
+        }
+        .node__label--cyan   { color: var(--accent-cyan); }
+        .node__label--violet { color: var(--accent-violet); }
+        .node__label--green  { color: var(--green); }
+        .node__label--amber  { color: var(--accent-amber); }
+        .node__label--rose   { color: var(--accent-rose); }
+        .node__label--blue   { color: var(--accent-blue); }
+        .node__label--orange { color: var(--accent-orange); }
+
+        .node h3 {
+            font-size: 1.05rem; font-weight: 700; margin-bottom: 5px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .node h3 .icon { font-size: 1.1rem; }
+        .node p, .node ul { color: var(--text-secondary); font-size: 0.84rem; }
+        .node ul { padding-left: 16px; margin-top: 3px; }
+        .node ul li { margin-bottom: 1px; }
+        .node strong { color: var(--text-primary); }
+
+        .node::before {
+            content: ''; position: absolute; left: 0; top: 14px; bottom: 14px;
+            width: 3.5px; border-radius: 0 4px 4px 0;
+        }
+        .node--cyan::before    { background: var(--accent-cyan); }
+        .node--blue::before    { background: var(--accent-blue); }
+        .node--violet::before  { background: var(--accent-violet); }
+        .node--amber::before   { background: var(--accent-amber); }
+        .node--rose::before    { background: var(--accent-rose); }
+        .node--green::before   { background: var(--green); }
+        .node--orange::before  { background: var(--accent-orange); }
+        .node--indigo::before  { background: var(--accent-indigo); }
+        .node--emerald::before { background: var(--accent-emerald); }
+
+        /* ===== DIAMOND ===== */
+        .diamond-wrap { display: flex; flex-direction: column; align-items: center; }
+        .diamond {
+            width: 170px; height: 170px;
+            display: flex; align-items: center; justify-content: center;
+            transform: rotate(45deg);
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+        .diamond:hover { box-shadow: 0 0 28px rgba(168,85,250,0.15); }
+        .diamond--violet { background: rgba(168,85,250,0.06); border: 1.5px solid rgba(168,85,250,0.28); }
+        .diamond--violet:hover { border-color: rgba(168,85,250,0.5); }
+        .diamond--rose { background: rgba(251,113,133,0.06); border: 1.5px solid rgba(251,113,133,0.28); }
+        .diamond--rose:hover { border-color: rgba(251,113,133,0.5); }
+        .diamond--amber { background: rgba(251,191,36,0.06); border: 1.5px solid rgba(251,191,36,0.28); }
+        .diamond--amber:hover { border-color: rgba(251,191,36,0.5); }
+        .diamond--green { background: rgba(34,197,94,0.06); border: 1.5px solid rgba(34,197,94,0.28); }
+        .diamond--green:hover { border-color: rgba(34,197,94,0.5); }
+
+        .diamond__inner {
+            transform: rotate(-45deg);
+            text-align: center; line-height: 1.3;
+        }
+        .diamond__inner .label {
+            font-size: 0.66rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 3px;
+        }
+        .diamond__inner .question {
+            font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+        }
+        .label--violet { color: var(--accent-violet); }
+        .label--rose   { color: var(--accent-rose); }
+        .label--amber  { color: var(--accent-amber); }
+        .label--green  { color: var(--green); }
+
+        /* ===== ARROW ===== */
+        .arrow {
+            display: flex; flex-direction: column; align-items: center; height: 38px;
+        }
+        .arrow .line {
+            width: 2px; flex: 1;
+            background: linear-gradient(180deg, var(--accent-indigo), var(--accent-violet));
+            opacity: 0.35;
+        }
+        .arrow .tip {
+            width: 0; height: 0;
+            border-left: 6px solid transparent; border-right: 6px solid transparent;
+            border-top: 7px solid var(--accent-violet); opacity: 0.5;
+        }
+        .arrow--tall { height: 50px; }
+
+        /* ===== BRANCH ROW ===== */
+        .branch-row {
+            display: grid; gap: 16px; width: 100%;
+        }
+        .branch-row--2 { grid-template-columns: 1fr 1fr; max-width: 640px; }
+        .branch-row--3 { grid-template-columns: 1fr 1fr 1fr; max-width: 840px; }
+        .branch-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+        /* Score labels */
+        .score-label {
+            font-family: var(--font-mono);
+            font-size: 0.76rem; font-weight: 700;
+            padding: 3px 14px; border-radius: 99px; margin-bottom: 6px;
+        }
+        .score-label--green  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+        .score-label--orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+        .score-label--red    { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
+        .score-label--blue   { background: var(--blue-bg);   color: var(--blue);   border: 1px solid var(--blue-border); }
+
+        /* Risk cards */
+        .risk-card {
+            width: 100%; border-radius: var(--radius-sm);
+            padding: 16px 18px; text-align: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .risk-card:hover { transform: translateY(-2px); }
+        .risk-card h4 {
+            font-size: 0.88rem; font-weight: 700; margin-bottom: 5px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .risk-card p { font-size: 0.78rem; }
+        .risk-card--green  { background: var(--green-bg);  border: 1.5px solid var(--green-border); }
+        .risk-card--green h4  { color: var(--green); }
+        .risk-card--green p   { color: rgba(34,197,94,0.7); }
+        .risk-card--green:hover { box-shadow: 0 6px 24px rgba(34,197,94,0.12); }
+
+        .risk-card--orange { background: var(--orange-bg); border: 1.5px solid var(--orange-border); }
+        .risk-card--orange h4 { color: var(--orange); }
+        .risk-card--orange p  { color: rgba(249,115,22,0.7); }
+        .risk-card--orange:hover { box-shadow: 0 6px 24px rgba(249,115,22,0.12); }
+
+        .risk-card--red    { background: var(--red-bg);    border: 1.5px solid var(--red-border); }
+        .risk-card--red h4 { color: var(--red); }
+        .risk-card--red p  { color: rgba(239,68,68,0.7); }
+        .risk-card--red:hover { box-shadow: 0 6px 24px rgba(239,68,68,0.12); }
+
+        .risk-card--blue   { background: var(--blue-bg);   border: 1.5px solid var(--blue-border); }
+        .risk-card--blue h4 { color: var(--blue); }
+        .risk-card--blue p  { color: rgba(59,130,246,0.7); }
+        .risk-card--blue:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.12); }
+
+        /* Outcome pills */
+        .outcome {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 24px; border-radius: 99px;
+            font-size: 0.84rem; font-weight: 700; letter-spacing: 0.03em;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .outcome:hover { transform: scale(1.05); }
+        .outcome--green  { background: var(--green-bg);  border: 2px solid var(--green-border);  color: var(--green); }
+        .outcome--green:hover  { box-shadow: 0 0 20px rgba(34,197,94,0.2); }
+        .outcome--orange { background: var(--orange-bg); border: 2px solid var(--orange-border); color: var(--orange); }
+        .outcome--orange:hover { box-shadow: 0 0 20px rgba(249,115,22,0.2); }
+        .outcome--red    { background: var(--red-bg);    border: 2px solid var(--red-border);    color: var(--red); }
+        .outcome--red:hover    { box-shadow: 0 0 20px rgba(239,68,68,0.2); }
+        .outcome--blue   { background: var(--blue-bg);   border: 2px solid var(--blue-border);   color: var(--blue); }
+        .outcome--blue:hover   { box-shadow: 0 0 20px rgba(59,130,246,0.2); }
+
+        /* ===== ANNOTATION ===== */
+        .annot {
+            font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;
+            max-width: 270px;
+        }
+        .annot strong { color: var(--text-secondary); font-weight: 600; }
+        .annot em { color: var(--text-secondary); font-style: italic; }
+        .annot ul { list-style: none; padding: 0; }
+        .annot ul li { padding: 2px 0; }
+        .annot ul li::before { content: '•'; color: var(--accent-indigo); font-weight: 800; margin-right: 6px; }
+        .annot--box {
+            background: rgba(30,41,59,0.5); border: 1px solid rgba(99,102,241,0.1);
+            border-radius: var(--radius-sm); padding: 12px 16px; max-width: 280px;
+        }
+        .annot--warn {
+            background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.12);
+            border-radius: var(--radius-sm); padding: 12px 16px; max-width: 280px;
+        }
+        .annot--mono {
+            font-family: var(--font-mono); font-size: 0.73rem; line-height: 1.7;
+        }
+
+        /* Policy legend */
+        .policy-legend {
+            font-family: var(--font-mono);
+            font-size: 0.74rem; line-height: 1.8; color: var(--text-muted);
+        }
+        .policy-legend .lo  { color: var(--green); }
+        .policy-legend .mid { color: var(--accent-amber); }
+        .policy-legend .hi  { color: var(--red); }
+
+        /* Scoring table */
+        .score-table {
+            font-family: var(--font-mono);
+            font-size: 0.73rem; line-height: 1.7; color: var(--text-muted);
+        }
+        .score-table .row { display: flex; gap: 8px; align-items: baseline; }
+        .score-table .key { color: var(--text-secondary); min-width: 130px; }
+        .score-table .val { font-weight: 600; }
+        .score-table .val--cyan  { color: var(--accent-cyan); }
+        .score-table .val--green { color: var(--green); }
+        .score-table .val--red   { color: var(--red); }
+
+        /* ===== EVAL BOX ===== */
+        .eval-row {
+            display: grid; grid-template-columns: 1fr 540px 1fr;
+            align-items: start; width: 100%; gap: 0;
+        }
+        .eval-box {
+            width: 100%; border-radius: var(--radius);
+            padding: 24px 28px;
+            backdrop-filter: blur(12px);
+        }
+        .eval-box--violet { background: rgba(168,85,250,0.04); border: 1.5px solid rgba(168,85,250,0.2); }
+        .eval-box--amber  { background: rgba(251,191,36,0.04);  border: 1.5px solid rgba(251,191,36,0.2); }
+        .eval-box--green  { background: rgba(34,197,94,0.04);   border: 1.5px solid rgba(34,197,94,0.2); }
+        .eval-box--cyan   { background: rgba(34,211,238,0.04);  border: 1.5px solid rgba(34,211,238,0.2); }
+
+        .eval-box h3 {
+            font-size: 1.05rem; font-weight: 800; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .eval-box p { color: var(--text-secondary); font-size: 0.86rem; margin-bottom: 8px; }
+        .eval-box .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+        .eval-box .col-label {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 3px;
+        }
+        .col-label--violet { color: var(--accent-violet); }
+        .col-label--amber  { color: var(--accent-amber); }
+        .col-label--green  { color: var(--green); }
+        .col-label--cyan   { color: var(--accent-cyan); }
+        .eval-box ul { list-style: none; padding: 0; }
+        .eval-box ul li {
+            font-size: 0.82rem; color: var(--text-secondary); padding: 2px 0;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .eval-box ul li::before { content: '›'; font-weight: 800; }
+        .li--violet::before { color: var(--accent-violet); }
+        .li--amber::before  { color: var(--accent-amber); }
+        .li--green::before  { color: var(--green); }
+        .li--cyan::before   { color: var(--accent-cyan); }
+
+        /* Side info cards */
+        .side-card {
+            border-radius: var(--radius-sm);
+            padding: 14px 18px; max-width: 250px;
+            text-align: center;
+        }
+        .side-card h4 {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; margin-bottom: 6px;
+        }
+        .side-card p { font-size: 0.78rem; }
+
+        /* SVG merge */
+        .merge-lines { width: 100%; height: 40px; position: relative; }
+        .merge-lines--2 { max-width: 640px; }
+        .merge-lines--3 { max-width: 840px; }
+        .merge-lines svg { width: 100%; height: 100%; }
+
+        /* ===== DECISION CARD PREVIEW ===== */
+        .decision-card-preview {
+            width: 100%; max-width: 440px;
+            border-radius: var(--radius);
+            background: rgba(17,24,39,0.9);
+            border: 1px solid rgba(34,211,238,0.2);
+            padding: 20px 22px;
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .decision-card-preview .title {
+            font-family: var(--font-sans);
+            font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan);
+            margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .decision-card-preview .actions {
+            display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+        }
+        .decision-card-preview .btn {
+            padding: 5px 14px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600; cursor: pointer;
+            font-family: var(--font-sans);
+        }
+        .btn--approve { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+        .btn--modify  { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+        .btn--skip    { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+
+        /* ===== TECH STACK FOOTER ===== */
+        .tech-stack {
+            margin-top: 48px; width: 100%; max-width: 840px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+        }
+        .tech-item {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 16px 18px;
+            text-align: center; transition: border-color 0.3s, transform 0.3s;
+        }
+        .tech-item:hover { border-color: var(--border-glow); transform: translateY(-2px); }
+        .tech-item h5 {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; margin-bottom: 8px;
+        }
+        .tech-item ul { list-style: none; padding: 0; }
+        .tech-item li {
+            font-size: 0.76rem; color: var(--text-secondary); padding: 2px 0;
+            font-family: var(--font-mono);
+        }
+
+        .footer {
+            text-align: center; padding: 36px 0;
+            color: var(--text-muted); font-size: 0.78rem;
+            border-top: 1px solid var(--border); margin-top: 20px;
+        }
+
+        /* ===== ANIMATION ===== */
+        .fade-up { opacity: 0; transform: translateY(22px); animation: fadeU 0.5s ease forwards; }
+        @keyframes fadeU { to { opacity:1; transform:translateY(0); } }
+        .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}
+        .d5{animation-delay:.28s}.d6{animation-delay:.34s}.d7{animation-delay:.40s}.d8{animation-delay:.46s}
+        .d9{animation-delay:.52s}.d10{animation-delay:.58s}.d11{animation-delay:.64s}.d12{animation-delay:.70s}
+        .d13{animation-delay:.76s}.d14{animation-delay:.82s}.d15{animation-delay:.88s}.d16{animation-delay:.94s}
+
+        @media (max-width: 900px) {
+            .flow-row, .eval-row { grid-template-columns: 1fr; }
+            .flow-row .left-annot, .flow-row .right-annot,
+            .eval-row .left-annot, .eval-row .right-annot { text-align: center; padding: 10px 0; }
+            .branch-row--2, .branch-row--3 { grid-template-columns: 1fr; }
+            .tech-stack { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb--1"></div>
+<div class="bg-orb bg-orb--2"></div>
+<div class="bg-orb bg-orb--3"></div>
+
+<div class="page">
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="hero__badge"><span class="dot"></span> AI-Native Agent Architecture</div>
+        <h1>Smart SIP Agent</h1>
+        <p>An AI-powered dip-buying agent that monitors markets, detects buying opportunities via multi-signal scoring, and executes additional SIP investments within user-defined guardrails.</p>
+    </section>
+
+    <div class="canvas">
+
+        <!-- ══════════════════════════════════════════════════
+             PERCEPTION LAYER
+             ══════════════════════════════════════════════════ -->
+        <div class="layer-banner layer-banner--perception fade-up d1">
+            <span class="label">📡 Perception Layer</span>
+        </div>
+
+        <!-- ===== MARKET OPENS ===== -->
+        <div class="flow-row fade-up d1">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="node node--cyan" style="max-width:340px; text-align:center;">
+                    <h3 style="justify-content:center;"><span class="icon">🔔</span> Market Opens</h3>
+                    <p>9:15 AM IST — Agent begins monitoring.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot" style="font-style:italic; color:var(--text-muted);">
+                    Investor is at work, not watching markets.
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== FETCH LIVE DATA ===== -->
+        <div class="flow-row fade-up d2">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="node node--cyan">
+                    <div class="node__label node__label--cyan">Real-time Data Feed</div>
+                    <h3><span class="icon">📡</span> Fetch Live Market Data</h3>
+                    <p>Retrieve all signals required for dip detection from multiple sources.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot annot--box">
+                    <div class="score-table">
+                        <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Data Signals:</div>
+                        <div class="row"><span class="key">Nifty 50 / Sensex</span> <span class="val val--cyan">Live index</span></div>
+                        <div class="row"><span class="key">India VIX</span> <span class="val val--cyan">Fear gauge</span></div>
+                        <div class="row"><span class="key">RSI (14-day)</span> <span class="val val--cyan">Momentum</span></div>
+                        <div class="row"><span class="key">200-day SMA</span> <span class="val val--cyan">Trend</span></div>
+                        <div class="row"><span class="key">Fund NAV</span> <span class="val val--cyan">AMFI API</span></div>
+                        <div class="row"><span class="key">P/E Ratio</span> <span class="val val--cyan">Valuation</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ══════════════════════════════════════════════════
+             REASONING LAYER
+             ══════════════════════════════════════════════════ -->
+        <div class="layer-banner layer-banner--reasoning fade-up d3">
+            <span class="label">🧠 Reasoning Layer</span>
+        </div>
+
+        <!-- ===== COMPUTE DIP SCORE ===== -->
+        <div class="flow-row fade-up d3">
+            <div class="left-annot">
+                <div class="annot annot--box" style="margin-left:auto;">
+                    <div class="score-table">
+                        <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Weighted Scoring:</div>
+                        <div class="row"><span class="key">Price Drop</span> <span class="val val--cyan">35%</span></div>
+                        <div class="row"><span class="key">RSI Signal</span> <span class="val val--cyan">25%</span></div>
+                        <div class="row"><span class="key">SMA Trend</span> <span class="val val--cyan">20%</span></div>
+                        <div class="row"><span class="key">VIX Level</span> <span class="val val--cyan">10%</span></div>
+                        <div class="row"><span class="key">NAV Drop</span> <span class="val val--cyan">10%</span></div>
+                    </div>
+                    <div style="margin-top:8px; font-size:0.7rem; color:var(--text-muted); font-style:italic;">
+                        Weights adjust per risk profile<br>(conservative / moderate / aggressive)
+                    </div>
+                </div>
+            </div>
+            <div class="center">
+                <div class="node node--violet">
+                    <div class="node__label node__label--violet">Multi-Signal Engine</div>
+                    <h3><span class="icon">🧮</span> Compute Dip Score</h3>
+                    <p>Weighted multi-signal scoring algorithm. Each signal contributes <strong>0–100</strong>. Final composite score: <strong>0–100</strong>.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot annot--warn">
+                    <strong>⚠️ Note:</strong> This is a <em>composite opportunity score</em>, not a probability. Higher = stronger dip signal.
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== DIP THRESHOLD DIAMOND ===== -->
+        <div class="flow-row fade-up d4">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="diamond-wrap">
+                    <div class="diamond diamond--violet">
+                        <div class="diamond__inner">
+                            <div class="label label--violet">MF Fund Signal</div>
+                            <div class="question">Dip<br>detected?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot policy-legend" style="margin-top:20px;">
+                    <div><span class="lo">Score &lt; 30 →</span> NO DIP — skip</div>
+                    <div><span class="mid">Score 30–74 →</span> MODERATE DIP</div>
+                    <div><span class="hi">Score ≥ 75 →</span> STRONG DIP — needs approval</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="height:24px;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:2px;flex:1;background:linear-gradient(180deg,var(--accent-indigo),var(--accent-violet));opacity:.35;"></div>
+        </div>
+
+        <!-- ===== THREE-WAY TIER BRANCH ===== -->
+        <div class="merge-lines merge-lines--3 fade-up d5">
+            <svg viewBox="0 0 840 40" preserveAspectRatio="none">
+                <line x1="420" y1="0" x2="140" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <line x1="420" y1="0" x2="420" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <line x1="420" y1="0" x2="700" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <polygon points="136,36 140,44 144,36" fill="rgba(99,102,241,0.35)"/>
+                <polygon points="416,36 420,44 424,36" fill="rgba(99,102,241,0.35)"/>
+                <polygon points="696,36 700,44 704,36" fill="rgba(99,102,241,0.35)"/>
+            </svg>
+        </div>
+
+        <div class="branch-row branch-row--3 fade-up d5">
+            <div class="branch-col">
+                <span class="score-label score-label--green">Score &lt; 30</span>
+                <div class="risk-card risk-card--green">
+                    <h4>✅ NO DIP DETECTED</h4>
+                    <p>All signals normal. No action needed. Agent logs and continues monitoring.</p>
+                </div>
+            </div>
+            <div class="branch-col">
+                <span class="score-label score-label--orange">Score 30 – 74</span>
+                <div class="risk-card risk-card--orange">
+                    <h4>⚡ LEVEL 1–2 DIP</h4>
+                    <p>Moderate opportunity. Extra ₹2,500 – ₹5,000. Auto-approve if within limit.</p>
+                </div>
+            </div>
+            <div class="branch-col">
+                <span class="score-label score-label--red">Score ≥ 75</span>
+                <div class="risk-card risk-card--red">
+                    <h4>🔥 LEVEL 3 — STRONG DIP</h4>
+                    <p>Significant opportunity. Extra ₹10,000. Requires explicit user approval.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow" style="margin-top:8px;"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== GUARDRAILS ===== -->
+        <div class="flow-row fade-up d6">
+            <div class="left-annot">
+                <div class="annot annot--warn" style="margin-left:auto;">
+                    <strong>🛡️ Bear Market Guards:</strong>
+                    <ul style="margin-top:4px;">
+                        <li>Index below 200-day SMA</li>
+                        <li>VIX &gt; 30 (extreme fear)</li>
+                        <li>Circuit breaker halt</li>
+                        <li>User paused agent</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="center">
+                <div class="diamond-wrap">
+                    <div class="diamond diamond--amber">
+                        <div class="diamond__inner">
+                            <div class="label label--amber">Guard Rails</div>
+                            <div class="question">Budget cap<br>exceeded?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot annot--box">
+                    <strong>Monthly Budget Cap:</strong><br>
+                    <span style="font-family:var(--font-mono); color:var(--accent-amber);">₹15,000</span> (configurable)<br>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Agent NEVER exceeds this cap, regardless of dip size.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- YES / NO branch -->
+        <div style="height:20px;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:2px;flex:1;background:linear-gradient(180deg,var(--accent-amber),var(--accent-violet));opacity:.35;"></div>
+        </div>
+
+        <div class="merge-lines merge-lines--2 fade-up d7">
+            <svg viewBox="0 0 640 40" preserveAspectRatio="none">
+                <line x1="320" y1="0" x2="160" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <line x1="320" y1="0" x2="480" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <polygon points="156,36 160,44 164,36" fill="rgba(99,102,241,0.35)"/>
+                <polygon points="476,36 480,44 484,36" fill="rgba(99,102,241,0.35)"/>
+            </svg>
+        </div>
+
+        <div class="branch-row branch-row--2 fade-up d7">
+            <div class="branch-col">
+                <span class="score-label score-label--red">YES — Cap Hit</span>
+                <div class="outcome outcome--red">🚫 SKIP — Log &amp; Wait</div>
+            </div>
+            <div class="branch-col">
+                <span class="score-label score-label--green">NO — Budget OK</span>
+                <div class="outcome outcome--green">✅ PROCEED</div>
+            </div>
+        </div>
+
+        <div class="arrow" style="margin-top:8px;"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== APPROVAL MODE ===== -->
+        <div class="flow-row fade-up d8">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="diamond-wrap">
+                    <div class="diamond diamond--green">
+                        <div class="diamond__inner">
+                            <div class="label label--green">Approval</div>
+                            <div class="question">Auto-approve<br>or notify?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot annot--box">
+                    <strong>Auto-approve limit:</strong><br>
+                    <span style="font-family:var(--font-mono); color:var(--green);">≤ ₹5,000</span> → auto-execute<br>
+                    <span style="font-family:var(--font-mono); color:var(--orange);">&gt; ₹5,000</span> → notify user
+                </div>
+            </div>
+        </div>
+
+        <div style="height:20px;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:2px;flex:1;background:linear-gradient(180deg,var(--accent-indigo),var(--accent-violet));opacity:.35;"></div>
+        </div>
+
+        <div class="merge-lines merge-lines--2 fade-up d9">
+            <svg viewBox="0 0 640 40" preserveAspectRatio="none">
+                <line x1="320" y1="0" x2="160" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <line x1="320" y1="0" x2="480" y2="40" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+                <polygon points="156,36 160,44 164,36" fill="rgba(99,102,241,0.35)"/>
+                <polygon points="476,36 480,44 484,36" fill="rgba(99,102,241,0.35)"/>
+            </svg>
+        </div>
+
+        <div class="branch-row branch-row--2 fade-up d9">
+            <div class="branch-col">
+                <span class="score-label score-label--green">AUTO-APPROVE</span>
+                <div class="risk-card risk-card--green">
+                    <h4>⚡ Execute Immediately</h4>
+                    <p>Amount ≤ auto-approve limit. Place order via Kite API without waiting.</p>
+                </div>
+            </div>
+            <div class="branch-col">
+                <span class="score-label score-label--blue">NOTIFY USER</span>
+                <div class="risk-card risk-card--blue">
+                    <h4>📱 Send Decision Card</h4>
+                    <p>WhatsApp / Push notification with full reasoning. Wait for user response.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow" style="margin-top:8px;"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ══════════════════════════════════════════════════
+             ACTION LAYER
+             ══════════════════════════════════════════════════ -->
+        <div class="layer-banner layer-banner--action fade-up d10">
+            <span class="label">⚡ Action Layer</span>
+        </div>
+
+        <!-- ===== LLM DECISION CARD ===== -->
+        <div class="flow-row fade-up d10">
+            <div class="left-annot">
+                <div class="annot annot--box" style="margin-left:auto;">
+                    <strong>🧠 LLM Explainer</strong>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                        Gemini 1.5 Pro generates<br>plain-language rationale.<br><br>
+                        Explains <em>why</em> this dip<br>is an opportunity — not a<br>structural decline.
+                    </div>
+                </div>
+            </div>
+            <div class="center">
+                <div class="decision-card-preview">
+                    <div class="title">📋 Smart SIP Opportunity Detected</div>
+                    <div>Nifty 50: 24,120 → 23,352 <span style="color:var(--red);">(-3.2%)</span></div>
+                    <div>RSI (14d): <span style="color:var(--accent-amber);">28.4</span> → Oversold zone</div>
+                    <div>200d SMA: <span style="color:var(--green);">Above</span> → Bull trend intact</div>
+                    <div>VIX: <span style="color:var(--green);">17.2</span> → Normal fear</div>
+                    <div style="margin-top:8px; color:var(--accent-violet);">Dip Score: 78/100 — Level 2 Trigger</div>
+                    <div style="margin-top:4px;">Recommendation: Extra <strong style="color:var(--text-primary);">₹5,000</strong> in HDFC Flexi Cap</div>
+                    <div class="actions">
+                        <span class="btn btn--approve">✅ Approve ₹5,000</span>
+                        <span class="btn btn--modify">✏️ Modify Amount</span>
+                        <span class="btn btn--skip">⏭️ Skip This Time</span>
+                    </div>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot">
+                    <strong>User Response Options:</strong>
+                    <ul style="margin-top:4px;">
+                        <li><span style="color:var(--green);">Approve</span> → execute order</li>
+                        <li><span style="color:var(--blue);">Modify</span> → change amount</li>
+                        <li><span style="color:var(--red);">Skip</span> → log, no action</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== EXECUTE ORDER ===== -->
+        <div class="flow-row fade-up d11">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="node node--green">
+                    <div class="node__label node__label--green">Order Execution</div>
+                    <h3><span class="icon">💰</span> Execute Buy Order</h3>
+                    <p>Place <strong>CNC market order</strong> via Zerodha Kite API (ETF) or BSE StarMF (mutual fund). Confirm execution and log trade record.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot annot--box">
+                    <div class="score-table">
+                        <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Execution Route:</div>
+                        <div class="row"><span class="key">MVP (ETF)</span> <span class="val val--green">Zerodha Kite</span></div>
+                        <div class="row"><span class="key">Phase 2 (MF)</span> <span class="val val--cyan">BSE StarMF</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== NOTIFY + LOG ===== -->
+        <div class="flow-row fade-up d12">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="node node--blue">
+                    <div class="node__label node__label--blue">Confirmation</div>
+                    <h3><span class="icon">✅</span> Send Confirmation &amp; Update Dashboard</h3>
+                    <p>WhatsApp confirmation message. Dashboard updated with <strong>"Smart Buy" marker</strong>. Trade logged to database for retrospective analysis.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot">
+                    <ul>
+                        <li>WhatsApp (85–95% open rate)</li>
+                        <li>Push notification (Firebase FCM)</li>
+                        <li>In-app dashboard update</li>
+                        <li>Email monthly summary</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ══════════════════════════════════════════════════
+             FEEDBACK LAYER
+             ══════════════════════════════════════════════════ -->
+        <div class="layer-banner layer-banner--feedback fade-up d13">
+            <span class="label">📊 Feedback &amp; Learning Layer</span>
+        </div>
+
+        <!-- ===== RETROSPECTIVE ===== -->
+        <div class="eval-row fade-up d13">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="eval-box eval-box--amber">
+                    <h3 style="color:var(--accent-amber);">📊 Retrospective Analytics</h3>
+                    <p>Compare every smart buy against baseline regular SIP performance at 1, 3, 6, and 12-month marks.</p>
+                    <div class="two-cols">
+                        <div>
+                            <div class="col-label col-label--amber">Record Per Trade</div>
+                            <ul>
+                                <li class="li--amber">NAV at purchase vs. SIP date NAV</li>
+                                <li class="li--amber">Units bought + amount invested</li>
+                                <li class="li--amber">Dip score &amp; trigger level</li>
+                                <li class="li--amber">Agent reasoning snapshot</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="col-label col-label--amber">Measure Over Time</div>
+                            <ul>
+                                <li class="li--amber">Smart SIP vs. Regular SIP delta</li>
+                                <li class="li--amber">Excess CAGR generated</li>
+                                <li class="li--amber">Win rate (% of smart buys profitable)</li>
+                                <li class="li--amber">Avg savings per unit bought</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="side-card" style="background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.15); margin-top:10px;">
+                    <h4 style="color:var(--green);">📈 Target Outcome</h4>
+                    <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); line-height:1.6;">
+                        <span style="color:var(--green);">+2.4%</span> excess CAGR
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.75rem; margin-top:4px;">
+                        vs. fixed-date SIP over 5-year horizon<br>(Motilal Oswal research)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== LEARNING LOOP ===== -->
+        <div class="flow-row fade-up d14">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="node node--amber">
+                    <div class="node__label node__label--amber">Learning Loop</div>
+                    <h3><span class="icon">🔄</span> Learn from Feedback</h3>
+                    <p>Track user overrides (skip / modify). Adjust signal weights and thresholds over time. Improve scoring model based on actual trade outcomes.</p>
+                </div>
+            </div>
+            <div class="right-annot">
+                <div class="annot" style="font-style:italic;">
+                    "Your 3 smart buys earned ₹1,240 extra this quarter" — celebrate wins to reinforce trust.
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow"><div class="line"></div><div class="tip"></div></div>
+
+        <!-- ===== CONTINUOUS MONITORING ===== -->
+        <div class="flow-row fade-up d15">
+            <div class="left-annot"></div>
+            <div class="center">
+                <div class="outcome outcome--blue" style="padding:14px 32px; font-size:0.92rem;">
+                    🔁 Continue Monitoring — Loop back to Perception Layer
+                </div>
+            </div>
+            <div class="right-annot"></div>
+        </div>
+
+        <!-- ===== TECH STACK ===== -->
+        <div class="layer-banner layer-banner--perception fade-up d16" style="margin-top:48px;">
+            <span class="label">🧰 Technology Stack</span>
+        </div>
+
+        <div class="tech-stack fade-up d16">
+            <div class="tech-item">
+                <h5 style="color:var(--accent-cyan);">📡 Data</h5>
+                <ul>
+                    <li>TrueData API</li>
+                    <li>NSEPython</li>
+                    <li>AMFI India</li>
+                    <li>mfapi.in</li>
+                    <li>yfinance</li>
+                </ul>
+            </div>
+            <div class="tech-item">
+                <h5 style="color:var(--accent-violet);">🧠 AI / Agent</h5>
+                <ul>
+                    <li>LangGraph</li>
+                    <li>Gemini 1.5 Pro</li>
+                    <li>FastAPI</li>
+                    <li>PostgreSQL</li>
+                    <li>Redis + Celery</li>
+                </ul>
+            </div>
+            <div class="tech-item">
+                <h5 style="color:var(--green);">⚡ Execution</h5>
+                <ul>
+                    <li>Zerodha Kite API</li>
+                    <li>BSE StarMF API</li>
+                    <li>e-NACH / UPI</li>
+                    <li>Paper Trading</li>
+                </ul>
+            </div>
+            <div class="tech-item">
+                <h5 style="color:var(--accent-amber);">🔔 Notify</h5>
+                <ul>
+                    <li>WhatsApp (360dialog)</li>
+                    <li>Firebase FCM</li>
+                    <li>Next.js Dashboard</li>
+                    <li>Email (SendGrid)</li>
+                </ul>
+            </div>
+        </div>
+
+    </div><!-- /canvas -->
+
+    <footer class="footer">
+        <p>Smart SIP Agent — Architecture Flowchart · AI-Native Deliverables · September 2026</p>
+    </footer>
+
+</div><!-- /page -->
+
+</body>
+</html>

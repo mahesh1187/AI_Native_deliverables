@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart SIP Agent — System Flowchart & Resources</title>
+    <meta name="description" content="End-to-end flowchart and resource map for the Smart SIP AI Agent: mutual fund selection, data extraction, backtesting, signal generation, and live deployment.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & VARIABLES ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary:    #0a0e1a;
+            --bg-secondary:  #111827;
+            --bg-card:       rgba(17, 24, 39, 0.7);
+            --surface:       rgba(30, 41, 59, 0.5);
+            --border:        rgba(99, 102, 241, 0.15);
+            --border-glow:   rgba(99, 102, 241, 0.35);
+
+            --text-primary:  #f1f5f9;
+            --text-secondary:#94a3b8;
+            --text-muted:    #64748b;
+
+            --accent-indigo: #818cf8;
+            --accent-violet: #a78bfa;
+            --accent-cyan:   #22d3ee;
+            --accent-emerald:#34d399;
+            --accent-amber:  #fbbf24;
+            --accent-rose:   #fb7185;
+            --accent-orange: #fb923c;
+            --accent-blue:   #60a5fa;
+
+            --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #0c1220 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
+
+            --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+
+            --radius:     16px;
+            --radius-sm:  10px;
+            --radius-xs:  6px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== BACKGROUND FX ===== */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.18; z-index: 0; pointer-events: none;
+        }
+        .bg-orb--1 { width: 600px; height: 600px; top: -200px; left: -100px; background: #6366f1; }
+        .bg-orb--2 { width: 500px; height: 500px; bottom: -150px; right: -100px; background: #a855f7; }
+        .bg-orb--3 { width: 400px; height: 400px; top: 40%; left: 50%; background: #22d3ee; opacity: 0.08; }
+
+        /* ===== LAYOUT ===== */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        /* ===== HERO ===== */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+        .hero__badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 18px; border-radius: 99px;
+            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25);
+            font-size: 0.8rem; font-weight: 600; color: var(--accent-indigo);
+            letter-spacing: 0.06em; text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+        .hero__badge .dot {
+            width: 7px; height: 7px; border-radius: 50%; background: var(--accent-emerald);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot { 0%,100%{opacity:.4;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #f1f5f9 30%, #818cf8 70%, #22d3ee 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+        .hero p {
+            font-size: 1.12rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto;
+        }
+
+        /* ===== SECTION HEADING ===== */
+        .section-heading {
+            text-align: center;
+            margin: 72px 0 40px;
+        }
+        .section-heading h2 {
+            font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+        }
+        .section-heading h2 .icon { font-size: 1.4rem; }
+        .section-heading p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+
+        /* ========================================
+           FLOWCHART
+           ======================================== */
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            padding-bottom: 20px;
+        }
+
+        /* --- Node --- */
+        .flow-node {
+            width: 100%;
+            max-width: 680px;
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: default;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.6s ease forwards;
+        }
+        .flow-node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(99,102,241,0.12);
+            border-color: var(--border-glow);
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .flow-node:nth-child(1)  { animation-delay: 0.05s; }
+        .flow-node:nth-child(3)  { animation-delay: 0.15s; }
+        .flow-node:nth-child(5)  { animation-delay: 0.25s; }
+        .flow-node:nth-child(7)  { animation-delay: 0.35s; }
+        .flow-node:nth-child(9)  { animation-delay: 0.45s; }
+        .flow-node:nth-child(11) { animation-delay: 0.55s; }
+        .flow-node:nth-child(13) { animation-delay: 0.65s; }
+        .flow-node:nth-child(15) { animation-delay: 0.75s; }
+
+        .flow-node__step {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .flow-node__step .num {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 800; color: #fff;
+        }
+
+        .flow-node h3 {
+            font-size: 1.18rem; font-weight: 700; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .flow-node h3 .emoji { font-size: 1.3rem; }
+        .flow-node p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 14px; }
+
+        .flow-node__tags {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .tag {
+            display: inline-block; padding: 3px 12px; border-radius: 99px;
+            font-size: 0.73rem; font-weight: 600; font-family: var(--font-mono);
+            background: rgba(99,102,241,0.08); color: var(--accent-indigo);
+            border: 1px solid rgba(99,102,241,0.12);
+        }
+        .tag--api    { background: rgba(34,211,238,0.08); color: var(--accent-cyan);    border-color: rgba(34,211,238,0.15); }
+        .tag--data   { background: rgba(52,211,153,0.08); color: var(--accent-emerald); border-color: rgba(52,211,153,0.15); }
+        .tag--ml     { background: rgba(168,85,250,0.08); color: var(--accent-violet);  border-color: rgba(168,85,250,0.15); }
+        .tag--infra  { background: rgba(251,191,36,0.08); color: var(--accent-amber);   border-color: rgba(251,191,36,0.12); }
+        .tag--signal { background: rgba(251,113,133,0.08);color: var(--accent-rose);    border-color: rgba(251,113,133,0.12);}
+        .tag--deploy { background: rgba(251,146,60,0.08); color: var(--accent-orange);  border-color: rgba(251,146,60,0.12); }
+
+        /* Connector arrow */
+        .flow-arrow {
+            display: flex; flex-direction: column; align-items: center;
+            height: 48px; position: relative;
+        }
+        .flow-arrow .line {
+            width: 2px; flex: 1;
+            background: linear-gradient(180deg, var(--accent-indigo) 0%, var(--accent-violet) 100%);
+            opacity: 0.4;
+        }
+        .flow-arrow .chevron {
+            width: 0; height: 0;
+            border-left: 7px solid transparent; border-right: 7px solid transparent;
+            border-top: 8px solid var(--accent-violet);
+            opacity: 0.55;
+        }
+
+        /* --- Color-coded left accent per node --- */
+        .flow-node::before {
+            content: '';
+            position: absolute; left: 0; top: 16px; bottom: 16px; width: 4px;
+            border-radius: 0 4px 4px 0;
+        }
+        .flow-node--1::before { background: var(--accent-blue); }
+        .flow-node--2::before { background: var(--accent-cyan); }
+        .flow-node--3::before { background: var(--accent-emerald); }
+        .flow-node--4::before { background: var(--accent-amber); }
+        .flow-node--5::before { background: var(--accent-violet); }
+        .flow-node--6::before { background: var(--accent-rose); }
+        .flow-node--7::before { background: var(--accent-orange); }
+        .flow-node--8::before { background: var(--accent-indigo); }
+
+        .flow-node--1 .num { background: var(--accent-blue); }
+        .flow-node--2 .num { background: var(--accent-cyan); }
+        .flow-node--3 .num { background: var(--accent-emerald); }
+        .flow-node--4 .num { background: var(--accent-amber); color: #1a1a2e; }
+        .flow-node--5 .num { background: var(--accent-violet); }
+        .flow-node--6 .num { background: var(--accent-rose); }
+        .flow-node--7 .num { background: var(--accent-orange); color: #1a1a2e; }
+        .flow-node--8 .num { background: var(--accent-indigo); }
+
+        /* ========================================
+           DECISION DIAMOND
+           ======================================== */
+        .flow-decision {
+            width: 100%; max-width: 680px;
+            display: flex; justify-content: center; align-items: center;
+            padding: 0;
+        }
+        .diamond {
+            width: 200px; height: 110px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            background: rgba(251,113,133,0.06);
+            border: 1.5px solid rgba(251,113,133,0.25);
+            border-radius: var(--radius-sm);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            font-size: 0.82rem; font-weight: 700; color: var(--accent-rose);
+            text-align: center; line-height: 1.3;
+        }
+
+        /* ========================================
+           PARALLEL SPLIT
+           ======================================== */
+        .parallel-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 680px;
+        }
+        .parallel-split .flow-node { max-width: none; }
+
+        /* ========================================
+           RESOURCES TABLE
+           ======================================== */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+        .res-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+        .res-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+        .res-card h4 {
+            font-size: 1rem; font-weight: 700; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .res-card h4 .icon { font-size: 1.2rem; }
+        .res-card ul {
+            list-style: none; padding: 0;
+        }
+        .res-card li {
+            font-size: 0.88rem; color: var(--text-secondary); padding: 5px 0;
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+        .res-card li::before {
+            content: '›';
+            color: var(--accent-indigo);
+            font-weight: 800;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+        .res-card li code {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            background: rgba(99,102,241,0.08);
+            padding: 1px 7px;
+            border-radius: 4px;
+            color: var(--accent-cyan);
+        }
+
+        /* ===== SUMMARY TABLE ===== */
+        .summary-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 60px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .summary-table thead th {
+            text-align: left; padding: 14px 20px;
+            background: rgba(99,102,241,0.06);
+            font-weight: 700; font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--accent-indigo);
+            border-bottom: 1px solid var(--border);
+        }
+        .summary-table tbody td {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(99,102,241,0.06);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .summary-table tbody tr:last-child td { border-bottom: none; }
+        .summary-table tbody tr:hover td { background: rgba(99,102,241,0.03); }
+        .summary-table .step-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%;
+            font-weight: 800; font-size: 0.78rem; color: #fff;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center; padding: 40px 0;
+            color: var(--text-muted); font-size: 0.82rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 720px) {
+            .parallel-split { grid-template-columns: 1fr; }
+            .resources-grid { grid-template-columns: 1fr; }
+            .flow-node { padding: 20px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb--1"></div>
+<div class="bg-orb bg-orb--2"></div>
+<div class="bg-orb bg-orb--3"></div>
+
+<!-- =========== HERO =========== -->
+<section class="hero">
+    <div class="container">
+        <div class="hero__badge"><span class="dot"></span> AI-Native Pipeline</div>
+        <h1>Smart SIP Agent — System Flowchart</h1>
+        <p>End-to-end data pipeline, AI backtesting engine, buy-signal generation, and live deployment flow for mutual fund dip-buying.</p>
+    </div>
+</section>
+
+<!-- =========== FLOWCHART =========== -->
+<section>
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="icon">🔀</span> Pipeline Flow Diagram</h2>
+            <p>8-stage system from fund selection to live deployment</p>
+        </div>
+
+        <div class="flowchart" id="flowchart">
+
+            <!-- ===== STEP 1 ===== -->
+            <div class="flow-node flow-node--1">
+                <div class="flow-node__step"><span class="num">1</span> INPUT STAGE</div>
+                <h3><span class="emoji">🏦</span> Select Mutual Fund Name</h3>
+                <p>User selects a mutual fund scheme (e.g., HDFC Flexi Cap, Mirae Asset Large Cap) via the UI or CLI. The scheme code is resolved via AMFI/mfapi search API.</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--api">mfapi.in</span>
+                    <span class="tag tag--api">AMFI India</span>
+                    <span class="tag">Scheme Code Lookup</span>
+                    <span class="tag">User Input</span>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 2 ===== -->
+            <div class="flow-node flow-node--2">
+                <div class="flow-node__step"><span class="num">2</span> DATA EXTRACTION</div>
+                <h3><span class="emoji">📂</span> Extract Monthly Portfolio Holdings</h3>
+                <p>Fetch the fund's monthly portfolio disclosure from AMFI to identify the top equity holdings — stock names, quantities, % of AUM. This becomes the universe of stocks to track.</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--api">AMFI Portfolio API</span>
+                    <span class="tag tag--data">indian_mf_extractor.py</span>
+                    <span class="tag tag--data">Pandas DataFrame</span>
+                    <span class="tag">Monthly CRON</span>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 3 — Parallel ===== -->
+            <div class="parallel-split">
+                <div class="flow-node flow-node--3">
+                    <div class="flow-node__step"><span class="num">3</span> NAV DATA</div>
+                    <h3><span class="emoji">📈</span> Collect MF NAV Data</h3>
+                    <p>Pull historical & live NAV for the selected scheme. Compute daily returns, drawdowns, rolling CAGR, and volatility metrics.</p>
+                    <div class="flow-node__tags">
+                        <span class="tag tag--api">mfapi.in/mf/{id}</span>
+                        <span class="tag tag--data">NAV CSV</span>
+                        <span class="tag">CAGR / Returns</span>
+                    </div>
+                </div>
+                <div class="flow-node flow-node--4">
+                    <div class="flow-node__step"><span class="num">4</span> STOCK DATA</div>
+                    <h3><span class="emoji">📊</span> Collect Stocks Data (1 Year)</h3>
+                    <p>For each top holding, fetch 1-year historical OHLCV plus real-time live prices via Yahoo Finance / NSE APIs. Build per-stock feature tables.</p>
+                    <div class="flow-node__tags">
+                        <span class="tag tag--api">yfinance</span>
+                        <span class="tag tag--api">NSE India API</span>
+                        <span class="tag tag--data">OHLCV</span>
+                        <span class="tag">Live + Historical</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 5 ===== -->
+            <div class="flow-node flow-node--5">
+                <div class="flow-node__step"><span class="num">5</span> AI / ML ENGINE</div>
+                <h3><span class="emoji">🤖</span> Fine-Tune AI Model & Perform Backtest</h3>
+                <p>Train/fine-tune a model (XGBoost, LSTM, or LLM-based reasoning agent) on the combined feature set. Run historical backtests across 1-year window to measure strategy alpha, Sharpe ratio, and max drawdown vs. fixed SIP baseline.</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--ml">XGBoost / LightGBM</span>
+                    <span class="tag tag--ml">LSTM / Transformer</span>
+                    <span class="tag tag--ml">LLM Reasoning</span>
+                    <span class="tag tag--ml">Backtrader</span>
+                    <span class="tag tag--ml">Scikit-learn</span>
+                    <span class="tag tag--data">Feature Engineering</span>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 6 ===== -->
+            <div class="flow-node flow-node--6">
+                <div class="flow-node__step"><span class="num">6</span> SIGNAL GENERATION</div>
+                <h3><span class="emoji">🚨</span> Model Reasoning — Buy Signal Logic</h3>
+                <p>When the model detects that <strong>top holdings are down significantly</strong> (e.g., ≥3% from recent peak), generate a <strong>BUY signal</strong> with confidence score & reasoning chain. The AI explains <em>why</em> the dip is an opportunity vs. a structural decline.</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--signal">Buy Signal</span>
+                    <span class="tag tag--signal">Confidence Score</span>
+                    <span class="tag tag--ml">Chain-of-Thought</span>
+                    <span class="tag tag--ml">Explainability (XAI)</span>
+                    <span class="tag">Dip Threshold Rules</span>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 7 ===== -->
+            <div class="flow-node flow-node--7">
+                <div class="flow-node__step"><span class="num">7</span> TESTING & FINE-TUNING</div>
+                <h3><span class="emoji">🧪</span> Prepare Test Cases & Fine-Tune Model</h3>
+                <p>Build a comprehensive test suite — edge cases (flash crash, low-vol drift, budget exceeded), historical replay tests, and synthetic scenarios. Use test results to retrain and improve model precision & recall for dip detection.</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--ml">pytest</span>
+                    <span class="tag tag--ml">MLflow</span>
+                    <span class="tag tag--data">Synthetic Data</span>
+                    <span class="tag">Precision / Recall</span>
+                    <span class="tag">Edge Cases</span>
+                </div>
+            </div>
+            <div class="flow-arrow"><div class="line"></div><div class="chevron"></div></div>
+
+            <!-- ===== STEP 8 ===== -->
+            <div class="flow-node flow-node--8">
+                <div class="flow-node__step"><span class="num">8</span> DEPLOYMENT</div>
+                <h3><span class="emoji">🚀</span> Deploy for Live Trading</h3>
+                <p>Deploy the pipeline as a live service — scheduled NAV polling, real-time stock monitoring, automated signal dispatch (push notification / Telegram / email), and optional auto-execute via broker API (Zerodha Kite, Groww, etc.).</p>
+                <div class="flow-node__tags">
+                    <span class="tag tag--deploy">Docker</span>
+                    <span class="tag tag--deploy">AWS / GCP</span>
+                    <span class="tag tag--deploy">FastAPI</span>
+                    <span class="tag tag--infra">Cron Scheduler</span>
+                    <span class="tag tag--infra">Zerodha Kite API</span>
+                    <span class="tag tag--signal">Telegram Bot</span>
+                </div>
+            </div>
+
+        </div><!-- /flowchart -->
+    </div>
+</section>
+
+<!-- =========== SUMMARY TABLE =========== -->
+<section>
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="icon">📋</span> Stage Summary Matrix</h2>
+            <p>Quick reference — input, output, and key tools for each stage</p>
+        </div>
+
+        <div class="summary-table-wrap">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Stage</th>
+                        <th>Input</th>
+                        <th>Output</th>
+                        <th>Key Tools / APIs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-blue)">1</span></td>
+                        <td>Select Mutual Fund</td>
+                        <td>User query / fund name</td>
+                        <td>Scheme code, fund metadata</td>
+                        <td>mfapi.in, AMFI India</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-cyan)">2</span></td>
+                        <td>Extract Portfolio</td>
+                        <td>Scheme code</td>
+                        <td>Top holdings (stock names, %, qty)</td>
+                        <td>AMFI Portfolio API, Pandas</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-emerald)">3</span></td>
+                        <td>Collect NAV Data</td>
+                        <td>Scheme code</td>
+                        <td>Historical NAV series, returns, CAGR</td>
+                        <td>mfapi.in, CSV export</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-amber);color:#1a1a2e">4</span></td>
+                        <td>Collect Stocks Data</td>
+                        <td>Top stock tickers</td>
+                        <td>1-year OHLCV + live prices</td>
+                        <td>yfinance, NSE API, Alpha Vantage</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-violet)">5</span></td>
+                        <td>AI Backtest</td>
+                        <td>Features (NAV + stocks)</td>
+                        <td>Model weights, backtest metrics</td>
+                        <td>XGBoost, LSTM, Backtrader, Scikit-learn</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-rose)">6</span></td>
+                        <td>Buy Signal Generation</td>
+                        <td>Model inference, live data</td>
+                        <td>BUY signal + confidence + reasoning</td>
+                        <td>LLM (GPT/Gemini), SHAP, XAI</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-orange);color:#1a1a2e">7</span></td>
+                        <td>Test & Fine-Tune</td>
+                        <td>Test cases, edge scenarios</td>
+                        <td>Precision/Recall metrics, improved model</td>
+                        <td>pytest, MLflow, synthetic data gen</td>
+                    </tr>
+                    <tr>
+                        <td><span class="step-badge" style="background:var(--accent-indigo)">8</span></td>
+                        <td>Live Deployment</td>
+                        <td>Production model, APIs</td>
+                        <td>Live alerts, auto-execution</td>
+                        <td>Docker, FastAPI, Zerodha API, Telegram</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- =========== RESOURCES =========== -->
+<section>
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="icon">🧰</span> All Resources & Tools</h2>
+            <p>Complete inventory of APIs, libraries, infrastructure, and services used across the pipeline</p>
+        </div>
+
+        <div class="resources-grid">
+
+            <!-- Data APIs -->
+            <div class="res-card">
+                <h4><span class="icon">🌐</span> Data APIs & Sources</h4>
+                <ul>
+                    <li><code>mfapi.in</code> — Free NAV history, scheme search, fund metadata</li>
+                    <li><code>AMFI India</code> — Official NAV feed (NAVAll.txt) + portfolio disclosures</li>
+                    <li><code>yfinance</code> — Yahoo Finance API for stock OHLCV data</li>
+                    <li><code>NSE India API</code> — Live NSE stock quotes and indices</li>
+                    <li><code>Alpha Vantage</code> — Alternate stock data provider (API key)</li>
+                    <li><code>Moneycontrol / Screener.in</code> — Supplementary fundamental data</li>
+                </ul>
+            </div>
+
+            <!-- Python Libraries -->
+            <div class="res-card">
+                <h4><span class="icon">🐍</span> Python Libraries</h4>
+                <ul>
+                    <li><code>pandas</code> — Data wrangling, time-series manipulation</li>
+                    <li><code>numpy</code> — Numerical computing, array operations</li>
+                    <li><code>requests</code> — HTTP API calls</li>
+                    <li><code>beautifulsoup4</code> — HTML parsing for web scraping</li>
+                    <li><code>openpyxl</code> — Excel file read/write</li>
+                    <li><code>tabulate</code> — Pretty-print data tables</li>
+                    <li><code>schedule / APScheduler</code> — Job scheduling</li>
+                    <li><code>python-dotenv</code> — Environment variable management</li>
+                </ul>
+            </div>
+
+            <!-- ML / AI -->
+            <div class="res-card">
+                <h4><span class="icon">🧠</span> Machine Learning & AI</h4>
+                <ul>
+                    <li><code>scikit-learn</code> — ML pipelines, metrics, preprocessing</li>
+                    <li><code>XGBoost / LightGBM</code> — Gradient boosted tree models</li>
+                    <li><code>TensorFlow / PyTorch</code> — LSTM / Transformer deep learning</li>
+                    <li><code>OpenAI / Google Gemini API</code> — LLM-based reasoning agent</li>
+                    <li><code>SHAP / LIME</code> — Model explainability (XAI)</li>
+                    <li><code>MLflow</code> — Experiment tracking, model registry</li>
+                    <li><code>LangChain / LlamaIndex</code> — LLM orchestration framework</li>
+                </ul>
+            </div>
+
+            <!-- Backtesting -->
+            <div class="res-card">
+                <h4><span class="icon">⏪</span> Backtesting & Strategy</h4>
+                <ul>
+                    <li><code>Backtrader</code> — Python backtesting framework</li>
+                    <li><code>Zipline / QuantConnect</code> — Alternate backtesting engines</li>
+                    <li><code>TA-Lib / pandas-ta</code> — Technical analysis indicators</li>
+                    <li><code>pyfolio</code> — Portfolio analytics & tear sheets</li>
+                    <li>Custom feature engineering (RSI, MACD, drawdown, z-score)</li>
+                </ul>
+            </div>
+
+            <!-- Testing -->
+            <div class="res-card">
+                <h4><span class="icon">🧪</span> Testing & Validation</h4>
+                <ul>
+                    <li><code>pytest</code> — Unit & integration test framework</li>
+                    <li><code>pytest-cov</code> — Code coverage measurement</li>
+                    <li><code>hypothesis</code> — Property-based test generation</li>
+                    <li>Synthetic data generators (Monte Carlo, GBM simulation)</li>
+                    <li>Historical replay engine for edge-case testing</li>
+                    <li>A/B testing framework for signal comparison</li>
+                </ul>
+            </div>
+
+            <!-- Infrastructure -->
+            <div class="res-card">
+                <h4><span class="icon">☁️</span> Infrastructure & Deployment</h4>
+                <ul>
+                    <li><code>Docker</code> — Containerized deployment</li>
+                    <li><code>AWS (EC2, Lambda, S3)</code> / <code>GCP (Cloud Run)</code></li>
+                    <li><code>FastAPI</code> — REST API backend</li>
+                    <li><code>PostgreSQL / SQLite</code> — Persistent data storage</li>
+                    <li><code>Redis</code> — Caching & rate limiting</li>
+                    <li><code>GitHub Actions</code> — CI/CD pipeline</li>
+                    <li><code>Cron / Airflow</code> — Task scheduling & orchestration</li>
+                </ul>
+            </div>
+
+            <!-- Broker APIs -->
+            <div class="res-card">
+                <h4><span class="icon">💹</span> Broker & Execution APIs</h4>
+                <ul>
+                    <li><code>Zerodha Kite Connect API</code> — Order placement, portfolio mgmt</li>
+                    <li><code>Groww API</code> — Alternate MF/stock execution</li>
+                    <li><code>Angel One SmartAPI</code> — Broker integration</li>
+                    <li><code>5Paisa API</code> — Trade execution</li>
+                    <li>Paper trading mode for pre-live validation</li>
+                </ul>
+            </div>
+
+            <!-- Notifications -->
+            <div class="res-card">
+                <h4><span class="icon">🔔</span> Notifications & Alerts</h4>
+                <ul>
+                    <li><code>Telegram Bot API</code> — Real-time signal alerts</li>
+                    <li><code>SendGrid / SES</code> — Email notifications</li>
+                    <li><code>Twilio</code> — SMS alerts (optional)</li>
+                    <li><code>Firebase FCM</code> — Push notifications (mobile app)</li>
+                    <li>Webhook integrations (Slack, Discord)</li>
+                </ul>
+            </div>
+
+        </div><!-- /resources-grid -->
+    </div>
+</section>
+
+<!-- =========== FOOTER =========== -->
+<footer class="footer">
+    <div class="container">
+        <p>Smart SIP Agent — System Architecture Flowchart · AI-Native Deliverables · September 2026</p>
+    </div>
+</footer>
+
+</body>
+</html>
